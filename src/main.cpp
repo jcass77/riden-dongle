@@ -132,6 +132,8 @@ static bool connect_wifi(const char *hostname)
     wifiManager.setHostname(hostname);
     wifiManager.setDebugOutput(false);
     wifiManager.setAPCallback(wifi_manager_config_mode_callback);
+    wifiManager.setConnectTimeout(20);
+    wifiManager.setConnectRetries(3);
 
     bool force_wifi_configuration = riden_config.get_and_reset_config_portal_on_boot();
 
