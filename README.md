@@ -174,8 +174,20 @@ as part of the repository.
 If you want to compile, you will need [PlatformIO](https://platformio.org/) in order to
 compile the firmware.
 
-No configuration is necessary; simply execute `pio run` and wait.
-The firmware is located at `.pio/build/esp12e/firmware.bin`.
+Set up a project-level virtual environment:
+
+```bash
+python3 -m venv .venv
+.venv/bin/pip install platformio
+```
+
+Then build:
+
+```bash
+VERSION=1.5.1 .venv/bin/pio run
+```
+
+The firmware is located at `.pio/build/esp12e/firmware_esp12e_<version>.bin`.
 
 ## Flashing the Firmware
 
@@ -189,10 +201,20 @@ You can use multiple tools to flash the firmware. The most well known are:
 - platformio
 - esptool (also available without installation: https://espressif.github.io/esptool-js/)
 
-Example with PlatformIO:
+Example with esptool (via a Raspberry Pi Debug Probe or similar USB-UART adapter):
 
 ```bash
-pio run -t upload --upload-port <ESP12F serial port>
+esptool --port /dev/ttyACM0 --baud 115200 \
+  --before no-reset --after no-reset \
+  write-flash 0x0 .pio/build/esp12e/firmware_esp12e_1_5_1.bin
+```
+
+To enter bootloader mode: hold GPIO0/PGM low, pulse RST, then release GPIO0.
+
+Example with PlatformIO (OTA, device must be on the network):
+
+```bash
+.venv/bin/pio run -e esp12e -t upload --upload-port <device-ip>
 ```
 
 and wait for the firmware to be flashed.
@@ -403,7 +425,6 @@ Riden standard firmware, and Unisoft "1p" versions and up, do _not_ exhibit this
   - removing/cutting the EN pin from the header.
 - If your local network uses IPv6 or has multiple subnets that are not subdivided by `/24` (`255.255.255.0`, "class C"), you may have problems connecting to it or have problems getting the correct time on the dongle and PSU. The dongle will expect IPv4, a subnet mask of `255.255.255.0` and a router + DNS server at address `*.*.*.1`. (it uses DNS for NTP, it will connect to pool.ntp.org)
 - In very rare cases, the dongle will not detect the PSU after a cold start. If that happens, reboot the dongle via the web interface (do not reboot the PSU), as will be shown anyway in the web interface.
-
 ## Credits
 
 - https://github.com/emelianov/modbus-esp8266
